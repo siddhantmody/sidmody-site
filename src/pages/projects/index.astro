@@ -1,0 +1,90 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allProjects = (await getCollection('projects', ({ data }) => !data.draft))
+  .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
+
+const roboticsProjects = allProjects.filter(p => p.data.category === 'robotics');
+const mlProjects = allProjects.filter(p => p.data.category === 'ml');
+
+// Helper to make URL-safe anchor IDs from section titles
+const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+// Section configuration — change titles/descriptions here without touching individual project files.
+const sections = [
+  {
+    title: 'full-stack robotics',
+    description: 'hardware design, embedded systems, controls, and the integration work that ties them together.',
+    projects: roboticsProjects,
+  },
+  {
+    title: 'data + ml applications',
+    description: 'data pipelines, machine learning, and software systems applied to problems outside robotics.',
+    projects: mlProjects,
+  },
+];
+
+// Only show sections that have at least one project
+const activeSections = sections.filter(s => s.projects.length > 0);
+---
+
+<BaseLayout title="projects · siddhant mody">
+  <h1 class="fade-in fade-in--1">projects</h1>
+  <p class="fade-in fade-in--2" style="color: var(--fg-muted); margin-bottom: var(--space-md);">
+    selected work - research, internships, and side projects.
+  </p>
+
+  {activeSections.length > 1 && (
+    <p class="fade-in fade-in--2 projects__jumplinks">
+      jump to: {activeSections.map((section, i) => (
+        <>
+          {i > 0 && <span class="projects__jumpsep"> | </span>}
+          <a href={`#${slugify(section.title)}`}>{section.title}</a>
+        </>
+      ))}
+    </p>
+  )}
+
+  {activeSections.map((section, sectionIdx) => (
+    <section
+      id={slugify(section.title)}
+      class={`fade-in fade-in--${Math.min(sectionIdx + 3, 5)} projects__section`}
+      data-section-idx={sectionIdx}
+    >
+      <h2 class="projects__heading">{section.title}</h2>
+      {section.description && (
+        <p class="projects__section-desc">{section.description}</p>
+      )}
+      <ul class="list list--with-thumbs">
+        {section.projects.map((p) => (
+          <li class="list__item">
+            <a href={`/projects/${p.slug}/`} class="list__link">
+              <img class="list__thumb" src={`/thumbs/${p.slug}.jpg`} alt="" loading="lazy" width="80" height="80" />
+              <span class="list__text">
+                <span class="list__title">{p.data.title}</span>
+                {p.data.description && <span class="list__desc">{p.data.description}</span>}
+              </span>
+            </a>
+            <div class="list__meta-col">
+              <span class="list__meta">{p.data.year}</span>
+              {p.data.tags && p.data.tags.length > 0 && (
+                <ul class="list__tags">
+                  {p.data.tags.map((tag) => (
+                    <li class="list__tag">{tag}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  {allProjects.length === 0 && (
+    <p style="color: var(--fg-muted);">
+      <em>no projects yet — add markdown files to <code>src/content/projects/</code>.</em>
+    </p>
+  )}
+</BaseLayout>

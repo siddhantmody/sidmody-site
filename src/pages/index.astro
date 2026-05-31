@@ -1,0 +1,97 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DoublePendulum from '../components/DoublePendulum.astro';
+---
+
+<BaseLayout title="siddhant mody" wide={true}>
+  <section class="landing">
+    <div class="landing__intro">
+      <h1 class="landing__name fade-in fade-in--2">siddhant mody</h1>
+      <p class="landing__tagline fade-in fade-in--3">
+        robotics + meche @ penn · incoming @ cosmic · controls · manipulation
+      </p>
+
+      <div class="fade-in fade-in--4">
+        <p>
+          <strong>hi, i'm sid.</strong> i build robots that interact with the world - manipulation hardware,
+          embedded firmware, and the controllers that tie them together. currently, i'm
+          researching contact-implicit MPC on commercial 3D printer hardware in the <a href="https://dair.seas.upenn.edu/" target="_blank" rel="noopener">DAIR lab</a>,
+          leading software for penn mars rover,
+          and i'm headed to <a href="https://www.cosmicrobotics.com/" target="_blank" rel="noopener">cosmic robotics</a> this summer
+          to write c++ for solar panel robots.
+        </p>
+        <p>
+          <strong>previously:</strong> i worked on robot hardware at <a href="https://www.aboutamazon.com/news/company-news/amazon-covariant-ai-robots" target="_blank" rel="noopener">covariant</a> (acquired by amazon),
+          helped build the <a href="https://penntoday.upenn.edu/news/penn-engineering-navigating-landscapes-lunar-robots-moon-and-mars" target="_blank" rel="noopener">NASA LuSTR lunar rover</a>, developed electromechanical fuel pump and fire suppression solutions with penn jet propulsion, and captained an FTC robotics team where i designed
+          a novel locking mecanum wheel that won the world championship innovate award.
+        </p>
+        <p>
+          feel free to <a href="/about/">read more about me</a>,
+          <a href="/projects/">browse my projects</a>,
+          <a href="/blog/">see what i'm writing</a>,
+          or reach out via <a href="mailto:sidmody@seas.upenn.edu">email</a>.
+        </p>
+      </div>
+    </div>
+
+    <aside class="landing__sidebar">
+      <div class="landing__pendulum fade-in fade-in--1">
+        <DoublePendulum />
+      </div>
+
+      <figure class="landing__portrait fade-in fade-in--5">
+        {/* TODO: drop a photo at /public/portrait.jpg (or .png, .webp).
+            Current display size: 229x381 (vertical orientation).
+            Provide at 2x for retina if possible (~458x762 source). */}
+        <img
+          src="/portrait.jpg"
+          alt="sid mody"
+          loading="eager"
+          width="229"
+          height="381"
+        />
+        {/* Optional caption — delete the figcaption tag if you don't want one. */}
+        <figcaption>{/* TODO: optional caption — "at [event/place], 2025" or remove */}</figcaption>
+      </figure>
+    </aside>
+  </section>
+
+  <section class="fade-in fade-in--5" style="margin-top: var(--space-xl);">
+    <h2 style="margin-top: 0;">recent</h2>
+    <ul class="list list--with-thumbs">
+      {/* TODO: pick 3-4 things you actually want surfaced here. these are placeholders. */}
+      <li class="list__item">
+        <a href="/projects/bb8/" class="list__link">
+          {/* TODO: /public/thumbs/bb8.jpg — recommended ~200x200, square crop */}
+          <img class="list__thumb" src="/thumbs/bb8.jpg" alt="" loading="lazy" width="80" height="80" />
+          <span class="list__text">
+            <span class="list__title">bb-8: a working star wars droid</span>
+            <span class="list__desc">two-ESP architecture, magnetic head coupling, demo-day pivot to wifi control</span>
+          </span>
+        </a>
+        <span class="list__meta">2026</span>
+      </li>
+      <li class="list__item">
+        <a href="/projects/c3-plus/" class="list__link">
+          {/* TODO: /public/thumbs/c3-plus.jpg — recommended ~200x200, square crop */}
+          <img class="list__thumb" src="/thumbs/c3-plus.jpg" alt="" loading="lazy" width="80" height="80" />
+          <span class="list__text">
+            <span class="list__title">c3+: contact-implicit MPC for object-object interaction</span>
+            <span class="list__desc">presented at ICRA 2026. 10x speedup on multi-object pushing. arXiv:2510.19974</span>
+          </span>
+        </a>
+        <span class="list__meta">2025</span>
+      </li>
+      <li class="list__item">
+        <a href="/projects/stockvocate/" class="list__link">
+          <img class="list__thumb" src="/thumbs/stockvocate.jpg" alt="" loading="lazy" width="80" height="80" />
+          <span class="list__text">
+            <span class="list__title">stockvocate: ml-driven trading infrastructure</span>
+            <span class="list__desc">dynamic neural network market prediction with 85% daily accuracy. building the full stack.</span>
+          </span>
+        </a>
+        <span class="list__meta">ongoing</span>
+      </li>
+    </ul>
+  </section>
+</BaseLayout>

@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+const { title, description, date } = post.data;
+
+function formatDate(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+---
+
+<BaseLayout title={`${title} · siddhant mody`}>
+  <article class="prose">
+    <h1 class="fade-in fade-in--1">{title}</h1>
+    <p class="prose__meta fade-in fade-in--2">{formatDate(date)}</p>
+    <div class="fade-in fade-in--3">
+      <Content />
+    </div>
+    <hr />
+    <p style="font-family: var(--font-sans); font-size: var(--fs-sm);">
+      <a href="/blog/">← all posts</a>
+    </p>
+  </article>
+</BaseLayout>

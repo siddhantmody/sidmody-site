@@ -1,0 +1,288 @@
+---
+// DoublePendulum.astro
+// Renders an SVG canvas and a script that runs:
+//   - Lagrangian dynamics of a double pendulum (RK4 integration)
+//   - Energy-shaping swing-up controller on the inner joint
+//   - LQR catch around the inverted-inverted equilibrium (detuned, so it usually fails)
+//   - Short fading trail of the endpoint
+//
+// Behavior: pumps energy, swings up, occasionally catches and balances for a beat,
+// loses it, falls, retries. Honest "untuned controller" aesthetic.
+---
+
+<svg
+  class="pendulum"
+  viewBox="-1.2 -1.2 2.4 2.4"
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+>
+  <path id="pendulum-trail" fill="none" stroke="var(--accent)" stroke-width="0.012" stroke-linecap="round" opacity="0.5"/>
+  <line id="pendulum-rod1" x1="0" y1="0" x2="0" y2="0" stroke="var(--fg)" stroke-width="0.025" stroke-linecap="round"/>
+  <line id="pendulum-rod2" x1="0" y1="0" x2="0" y2="0" stroke="var(--fg)" stroke-width="0.025" stroke-linecap="round"/>
+  <circle id="pendulum-pivot" cx="0" cy="0" r="0.04" fill="var(--fg)"/>
+  <circle id="pendulum-mass1" cx="0" cy="0" r="0.055" fill="var(--bg)" stroke="var(--fg)" stroke-width="0.02"/>
+  <circle id="pendulum-mass2" cx="0" cy="0" r="0.055" fill="var(--accent)"/>
+</svg>
+
+<style>
+  .pendulum {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>
+
+<script is:inline>
+(function() {
+  // ---- Physical parameters ----
+  const m1 = 1.0, m2 = 1.0;       // masses
+  const L1 = 0.45, L2 = 0.45;     // rod lengths (in viewBox units)
+  const g  = 9.81;                // gravity
+  const damping = 0.025;          // joint friction (keeps it bounded)
+
+  // ---- State: [theta1, theta2, omega1, omega2] ----
+  // theta = 0 hangs down, theta = pi is inverted
+  // Start with a non-trivial initial velocity so the first swing-up
+  // is visible quickly (~3s instead of ~7s from rest).
+  let state = [0.3, -0.1, 1.5, -0.5];
+
+  // ---- Controller mode ----
+  // 'swingup'  -> energy-shaping on joint 1
+  // 'catch'    -> LQR around inverted-inverted (detuned, falls)
+  // 'idle'     -> brief pause so attempts are visually distinct
+  let mode = 'swingup';
+  let modeTimer = 0;
+  let catchHoldTime = 0;
+
+  // Energy of full system
+  function totalEnergy(s) {
+    const [t1, t2, w1, w2] = s;
+    const c1 = Math.cos(t1), c12 = Math.cos(t1 - t2);
+    // Kinetic
+    const T =
+      0.5 * (m1 + m2) * L1 * L1 * w1 * w1 +
+      0.5 * m2 * L2 * L2 * w2 * w2 +
+      m2 * L1 * L2 * w1 * w2 * c12;
+    // Potential (zero at pivot, positive when raised)
+    const V =
+      -(m1 + m2) * g * L1 * c1 -
+      m2 * g * L2 * Math.cos(t2);
+    return T + V;
+  }
+  const E_top = (m1 + m2) * g * L1 + m2 * g * L2; // PE at inverted-inverted
+
+  // ---- Controller: returns torque on joint 1 (shoulder) ----
+  // The inner joint is actuated; the outer joint swings free (acrobot-style).
+  function controlTorque(s) {
+    const [t1, t2, w1, w2] = s;
+    const E = totalEnergy(s);
+    const Ediff = E - E_top;
+    const e1 = angleWrap(t1 - Math.PI);
+    const e2 = angleWrap(t2 - Math.PI);
+
+    // Hysteresis on the catch region:
+    //  - enter 'catch' when in a tight region around the inverted-inverted config
+    //  - exit 'catch' only when outside a wider region (prevents mode chatter)
+    const nearTopTight =
+      Math.abs(e1) < 0.35 && Math.abs(e2) < 0.45 &&
+      Math.abs(w1) < 2.0 && Math.abs(w2) < 2.5;
+    const nearTopLoose =
+      Math.abs(e1) < 0.70 && Math.abs(e2) < 0.85 &&
+      Math.abs(w1) < 4.0 && Math.abs(w2) < 5.0;
+
+    if (nearTopTight && mode !== 'catch') {
+      mode = 'catch';
+      catchHoldTime = 0;
+    } else if (!nearTopLoose && mode === 'catch') {
+      mode = 'idle';
+      // Randomize idle duration so retries don't feel periodic
+      modeTimer = 0.6 + 0.5 * Math.random();
+    }
+
+    if (mode === 'idle') {
+      modeTimer -= dt;
+      if (modeTimer <= 0) mode = 'swingup';
+      return -0.3 * w1; // gentle braking during idle
+    }
+
+    if (mode === 'catch') {
+      catchHoldTime += dt;
+      // LQR-like gains. Detuned just enough that residual energy and outer-link
+      // disturbances aren't fully rejected — usually drifts off after a beat.
+      const k1 = 45, k2 = 18, k3 = 11, k4 = 4.5;
+      let u = -(k1 * e1 + k2 * e2 + k3 * w1 + k4 * w2);
+      return clamp(u, -30, 30);
+    }
+
+    // Swing-up: energy shaping (Spong 1995-style).
+    // u = -k * w1 * (E - E_top). Pumps energy when below target.
+    const k_E = 8.0;
+    let u = -k_E * w1 * Ediff;
+    return clamp(u, -12, 12);
+  }
+
+  // ---- Dynamics: returns [dt1, dt2, dw1, dw2] given state and torque ----
+  // Standard double-pendulum equations of motion with input torque u on joint 1.
+  function derivatives(s, u) {
+    const [t1, t2, w1, w2] = s;
+    const delta = t1 - t2;
+    const sd = Math.sin(delta), cd = Math.cos(delta);
+    const s1 = Math.sin(t1), s2 = Math.sin(t2);
+
+    const M11 = (m1 + m2) * L1;
+    const M12 = m2 * L2 * cd;
+    const M21 = L1 * cd;
+    const M22 = L2;
+
+    const C1 = -m2 * L2 * w2 * w2 * sd - (m1 + m2) * g * s1 + u - damping * w1;
+    const C2 =  L1 * w1 * w1 * sd - g * s2 - damping * w2;
+
+    // Solve 2x2 system M * [dw1, dw2]^T = [C1, C2]^T
+    const det = M11 * M22 - M12 * M21;
+    const dw1 = ( M22 * C1 - M12 * C2) / det;
+    const dw2 = (-M21 * C1 + M11 * C2) / det;
+
+    return [w1, w2, dw1, dw2];
+  }
+
+  // RK4 step
+  function rk4Step(s, dt) {
+    const u1 = controlTorque(s);
+    const k1 = derivatives(s, u1);
+    const s2 = addScaled(s, k1, dt / 2);
+    const k2 = derivatives(s2, controlTorque(s2));
+    const s3 = addScaled(s, k2, dt / 2);
+    const k3 = derivatives(s3, controlTorque(s3));
+    const s4 = addScaled(s, k3, dt);
+    const k4 = derivatives(s4, controlTorque(s4));
+    return [
+      s[0] + (dt / 6) * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0]),
+      s[1] + (dt / 6) * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1]),
+      s[2] + (dt / 6) * (k1[2] + 2*k2[2] + 2*k3[2] + k4[2]),
+      s[3] + (dt / 6) * (k1[3] + 2*k2[3] + 2*k3[3] + k4[3]),
+    ];
+  }
+
+  function addScaled(s, k, h) {
+    return [s[0]+k[0]*h, s[1]+k[1]*h, s[2]+k[2]*h, s[3]+k[3]*h];
+  }
+  function angleWrap(a) {
+    while (a > Math.PI) a -= 2 * Math.PI;
+    while (a < -Math.PI) a += 2 * Math.PI;
+    return a;
+  }
+  function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+
+  // ---- Rendering ----
+  const rod1 = document.getElementById('pendulum-rod1');
+  const rod2 = document.getElementById('pendulum-rod2');
+  const mass1 = document.getElementById('pendulum-mass1');
+  const mass2 = document.getElementById('pendulum-mass2');
+  const trailPath = document.getElementById('pendulum-trail');
+
+  if (!rod1) return; // safety: only run if SVG is on the page
+
+  const trail = []; // [{x,y,age}]
+  const trailMaxAge = 1.2; // seconds
+
+  // ---- Timing ----
+  const dt = 1 / 240;        // physics step (small for stability)
+  const timeScale = 0.35;     // slow simulation to half-speed (visual calmness)
+  let acc = 0;
+  let last = performance.now();
+  let running = true;
+
+  // Pause when off-screen
+  const svg = document.querySelector('.pendulum');
+  if (svg && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        running = e.isIntersecting;
+        if (running) last = performance.now();
+      });
+    });
+    io.observe(svg);
+  }
+
+  // Pause when tab hidden
+  document.addEventListener('visibilitychange', () => {
+    running = !document.hidden;
+    if (running) last = performance.now();
+  });
+
+  // Respect reduced motion
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reducedMotion) {
+    // Render static hanging position
+    state = [0.1, 0.05, 0, 0];
+    drawFrame();
+    return;
+  }
+
+  function step(now) {
+    if (!running) {
+      requestAnimationFrame(step);
+      return;
+    }
+    let frameTime = (now - last) / 1000;
+    last = now;
+    if (frameTime > 0.1) frameTime = 0.1; // clamp big jumps
+    acc += frameTime * timeScale;
+
+    while (acc >= dt) {
+      state = rk4Step(state, dt);
+      acc -= dt;
+    }
+
+    // Trail bookkeeping
+    const [t1, t2] = state;
+    const x1 = L1 * Math.sin(t1);
+    const y1 = L1 * Math.cos(t1);
+    const x2 = x1 + L2 * Math.sin(t2);
+    const y2 = y1 + L2 * Math.cos(t2);
+
+    trail.push({ x: x2, y: y2, age: 0 });
+    for (let i = trail.length - 1; i >= 0; i--) {
+      trail[i].age += frameTime * timeScale;
+      if (trail[i].age > trailMaxAge) trail.splice(i, 1);
+    }
+
+    drawFrame(x1, y1, x2, y2);
+    requestAnimationFrame(step);
+  }
+
+  function drawFrame(x1, y1, x2, y2) {
+    if (x1 === undefined) {
+      const [t1, t2] = state;
+      x1 = L1 * Math.sin(t1);
+      y1 = L1 * Math.cos(t1);
+      x2 = x1 + L2 * Math.sin(t2);
+      y2 = y1 + L2 * Math.cos(t2);
+    }
+    rod1.setAttribute('x2', x1);
+    rod1.setAttribute('y2', y1);
+    rod2.setAttribute('x1', x1);
+    rod2.setAttribute('y1', y1);
+    rod2.setAttribute('x2', x2);
+    rod2.setAttribute('y2', y2);
+    mass1.setAttribute('cx', x1);
+    mass1.setAttribute('cy', y1);
+    mass2.setAttribute('cx', x2);
+    mass2.setAttribute('cy', y2);
+
+    // Trail as SVG path with opacity gradient via stroke-opacity per segment
+    // Simplest: single path, opacity overall, just newest N points
+    if (trail.length > 1) {
+      let d = `M ${trail[0].x} ${trail[0].y}`;
+      for (let i = 1; i < trail.length; i++) {
+        d += ` L ${trail[i].x} ${trail[i].y}`;
+      }
+      trailPath.setAttribute('d', d);
+    } else {
+      trailPath.setAttribute('d', '');
+    }
+  }
+
+  requestAnimationFrame(step);
+})();
+</script>

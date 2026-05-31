@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects', ({ data }) => !data.draft);
+  return projects.map((p) => ({
+    params: { slug: p.slug },
+    props: { project: p },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await project.render();
+const { title, description, year, role, org } = project.data;
+---
+
+<BaseLayout title={`${title} · siddhant mody`}>
+  <article class="prose">
+    <h1 class="fade-in fade-in--1">{title}</h1>
+    <p class="prose__meta fade-in fade-in--2">
+      {year}{role && ` · ${role}`}{org && ` · ${org}`}
+    </p>
+    {description && (
+      <p class="fade-in fade-in--2" style="font-size: var(--fs-md); color: var(--fg-muted); margin-bottom: var(--space-lg);">
+        {description}
+      </p>
+    )}
+    <div class="fade-in fade-in--3">
+      <Content />
+    </div>
+
+    <hr />
+    <p style="font-family: var(--font-sans); font-size: var(--fs-sm);">
+      <a href="/projects/">← all projects</a>
+    </p>
+  </article>
+</BaseLayout>

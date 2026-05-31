@@ -1,0 +1,148 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="about · siddhant mody">
+  <article class="prose">
+    <h1 class="fade-in fade-in--1">about</h1>
+
+    <div class="fade-in fade-in--2">
+      {/* TODO: longer-form bio. write this in your own voice. */}
+      <p>
+        i'm a robotics m.s. + meche b.s. student at the university of pennsylvania,
+        finishing both in may 2027. ultimately, i want to create end-to-end robots 
+        that work in places people don't want to (or can't). i think about robots from the mechanical side first, 
+        then the controls and embedded layers that make them work.
+      </p>
+      <p>
+        {/* TODO: what do you actually care about? what gets you out of bed? */}
+        i'm most interested in control problems where the mechanical design and the controller can't be separated -
+        pushing, grasping, assembly, anywhere the standard "plan a move, execute a
+        move" decomposition breaks down.
+        the c3+ work i've been doing at DAIR is in this space, and my fascination 
+        with industrial and field robotics comes from the same place, inspiring
+        my future career goals.
+      </p>
+      <p>
+        outside of school, i'm especially into music and sports (packers, hornets, hurricanes, and man united!). 
+        when i have some spare time, you can also find me working on a machine-learning
+        based stock trading algorithm at stockvocate or building biocomputing's
+        true promise at laminae.
+      </p>
+    </div>
+
+    <h2 class="fade-in fade-in--3">work</h2>
+
+    <div class="fade-in fade-in--3">
+      <div class="work-entry">
+        <div>
+          <span class="work-entry__role">robotics engineering intern</span>
+          <span class="work-entry__org"> · <a href="https://www.cosmicrobotics.com/" target="_blank" rel="noopener">cosmic robotics</a></span>
+        </div>
+        <span class="work-entry__meta">summer 2026 (incoming)</span>
+        <p class="work-entry__desc">
+          c++ for solar panel manipulation robots.
+        </p>
+      </div>
+
+      <div class="work-entry">
+        <div>
+          <span class="work-entry__role">undergraduate researcher</span>
+          <span class="work-entry__org"> · <a href="https://dair.seas.upenn.edu/" target="_blank" rel="noopener">DAIR lab @ penn</a></span>
+        </div>
+        <span class="work-entry__meta">may 2025 — present</span>
+        <p class="work-entry__desc">
+          c++ contact-implicit MPC for multi-object pushing (c3+). 
+          3d-printer-based manipulation platform with safety-hardened python control.
+        </p>
+      </div>
+
+      <div class="work-entry">
+        <div>
+          <span class="work-entry__role">software lead</span>
+          <span class="work-entry__org"> · penn mars rover</span>
+        </div>
+        <span class="work-entry__meta">apr 2025 — present</span>
+        <p class="work-entry__desc">
+          full-stack ROS/c++/python for the university rover challenge.
+          managing nine engineers and the git-based development workflow.
+        </p>
+      </div>
+
+      <div class="work-entry">
+        <div>
+          <span class="work-entry__role">mechanical engineer</span>
+          <span class="work-entry__org"> · <a href="https://aerospaceclub.seas.upenn.edu/jet-propulsion/" target="_blank" rel="noopener">penn jet propulsion</a></span>
+        </div>
+        <span class="work-entry__meta">aug 2024 — present</span>
+        <p class="work-entry__desc">
+          designing the post-combustion nozzle for the first american undergraduate
+          hydrogen jet engine. inconel + thermiculite/PTFE at 2300°C inlet.
+        </p>
+      </div>
+
+      <div class="work-entry">
+        <div>
+          <span class="work-entry__role">mechanical engineering intern</span>
+          <span class="work-entry__org"> · <a href="https://www.aboutamazon.com/news/company-news/amazon-covariant-ai-robots" target="_blank" rel="noopener">covariant</a> (acquired by amazon)</span>
+        </div>
+        <span class="work-entry__meta">may 2024 — aug 2024</span>
+        <p class="work-entry__desc">
+          end effector and conveyance design across 25+ robotic cells.
+          DOE-driven testing raised cell throughput by up to 20%.
+        </p>
+      </div>
+
+      <div class="work-entry">
+        <div>
+          <span class="work-entry__role">undergraduate researcher</span>
+          <span class="work-entry__org"> · <a href="https://www.modlabupenn.org/" target="_blank" rel="noopener">modlab @ penn (NASA LuSTR)</a></span>
+        </div>
+        <span class="work-entry__meta">sep 2023 — may 2025</span>
+        <p class="work-entry__desc">
+          optimized a 5m active spiral zipper arm for linked lunar rovers.
+          10:1 strength-to-weight, 200N push / 300N pull.
+        </p>
+      </div>
+    </div>
+
+    <h2 class="fade-in fade-in--4">education</h2>
+    <div class="fade-in fade-in--4">
+      <div class="work-entry">
+        <div>
+          <span class="work-entry__role">m.s. robotics</span>
+          <span class="work-entry__org"> · university of pennsylvania</span>
+        </div>
+        <span class="work-entry__meta">may 2027 · 4.00 gpa</span>
+        <p class="work-entry__desc">
+          machine learning, feedback control, linear control theory, mechatronics.
+        </p>
+      </div>
+      <div class="work-entry">
+        <div>
+          <span class="work-entry__role">b.s. mechanical engineering</span>
+          <span class="work-entry__org"> · minors in CS, math, engineering entrepreneurship</span>
+        </div>
+        <span class="work-entry__meta">may 2027 · 3.98 gpa</span>
+      </div>
+    </div>
+
+    <h2 class="fade-in fade-in--5">tools</h2>
+    <div class="fade-in fade-in--5">
+      <p>
+        <strong>languages:</strong> python, c++, java, ocaml<br />
+        <strong>robotics:</strong> ROS, drake, pytorch, opencv, linux<br />
+        <strong>cad / sim:</strong> onshape, solidworks, ansys, matlab, GD&T<br />
+        <strong>process:</strong> jira, six sigma, FMEA, DOE
+      </p>
+    </div>
+
+    <hr />
+
+    <p style="font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--fg-muted);">
+      reach me at <a href="mailto:sidmody@seas.upenn.edu">sidmody@seas.upenn.edu</a> ·
+      <a href="https://www.linkedin.com/in/siddhant-mody/" target="_blank" rel="noopener">linkedin</a> ·
+      <a href="https://github.com/siddhantmody" target="_blank" rel="noopener">github</a>
+    </p>
+  </article>
+</BaseLayout>

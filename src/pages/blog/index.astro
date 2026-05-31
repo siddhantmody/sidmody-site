@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+function formatDate(d: Date) {
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+---
+
+<BaseLayout title="writing · siddhant mody">
+  <h1 class="fade-in fade-in--1">writing</h1>
+  <p class="fade-in fade-in--2" style="color: var(--fg-muted); margin-bottom: var(--space-lg);">
+    thoughts on robotics, controls, and education.
+  </p>
+
+  <ul class="list fade-in fade-in--3">
+    {posts.map((post) => (
+      <li class="list__item">
+        <a href={`/blog/${post.slug}/`} class="list__link">
+          <span class="list__title">{post.data.title}</span>
+          {post.data.description && <span class="list__desc">{post.data.description}</span>}
+        </a>
+        <span class="list__meta">{formatDate(post.data.date)}</span>
+      </li>
+    ))}
+  </ul>
+
+  {posts.length === 0 && (
+    <p style="color: var(--fg-muted);">
+      <em>no posts yet — add markdown files to <code>src/content/blog/</code>.</em>
+    </p>
+  )}
+</BaseLayout>
