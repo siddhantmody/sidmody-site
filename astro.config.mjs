@@ -5,7 +5,7 @@ import { defineConfig } from 'astro/config';
 // If using a custom domain on GitHub Pages, leave `base` as '/'.
 
 export default defineConfig({
-  site: 'https://sidmody.tech',
+  site: 'https://sidmody.com',
   base: '/',
   build: {
     format: 'directory',
