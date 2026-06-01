@@ -99,9 +99,8 @@ two things from the CDR plan didn't make the final build:
 
 - **the audio speaker burned out during integration**. we didn't have
   access to replacements, so the system was silent
-- **the hard-stop watchdog** (RC-loss → motor halt) wasn't deemed necessary
-  since we were always within line-of-sight during operation and didn't
-  drive significant ranges
+- **the hard-stop watchdog** (RC-loss → motor halt) was omitted based on our 
+  tightly controlled, line-of-sight testing environment
 
 ## tools
 
