@@ -52,7 +52,7 @@ const activeSections = sections.filter(s => s.projects.length > 0);
       class={`fade-in fade-in--${Math.min(sectionIdx + 3, 5)} projects__section`}
       data-section-idx={sectionIdx}
     >
-      <h2 class="projects__heading">{section.title}</h2>
+      <h2 class="projects__">{section.title}</h2>
       {section.description && (
         <p class="projects__section-desc">{section.description}</p>
       )}
