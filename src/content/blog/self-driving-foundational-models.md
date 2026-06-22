@@ -1,6 +1,6 @@
 ---
-title: "robotics has done this before"
-description: "what self-driving's last decade tells us about the foundation model bet in robotics"
+title: "the unsexy hybrid: what a decade of self-driving tells us about generalist robotics"
+description: "how foundation models can be mapped to the self-driving past"
 date: 2026-06-22
 draft: false
 ---
