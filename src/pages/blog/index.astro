@@ -16,12 +16,15 @@ function formatDate(d: Date) {
     thoughts on robotics, controls, and education.
   </p>
 
-  <ul class="list fade-in fade-in--3">
+  <ul class="list list--with-thumbs fade-in fade-in--3">
     {posts.map((post) => (
       <li class="list__item">
         <a href={`/blog/${post.slug}/`} class="list__link">
-          <span class="list__title">{post.data.title}</span>
-          {post.data.description && <span class="list__desc">{post.data.description}</span>}
+          <img class="list__thumb" src={`/thumbs/${post.slug}.jpg`} alt="" loading="lazy" width="80" height="80" />
+          <span class="list__text">
+            <span class="list__title">{post.data.title}</span>
+            {post.data.description && <span class="list__desc">{post.data.description}</span>}
+          </span>
         </a>
         <span class="list__meta">{formatDate(post.data.date)}</span>
       </li>
