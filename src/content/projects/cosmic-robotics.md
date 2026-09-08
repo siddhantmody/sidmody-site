@@ -29,10 +29,9 @@ benchmarked collision-checking approaches for a real-time safety loop.
 ## what i did
 
 **lane keeping.** wrote a cascading PID lane-keeping controller in my first
-week and characterized the sensor pod's noise floor (5mm lateral, 0.25°
-heading). wrote a hardware test plan for it, then priorities shifted toward
-simulation infrastructure that let the team iterate without needing robot
-time for every test.
+week and characterized the sensor pod's noise floor. wrote a hardware test
+plan for it, then priorities shifted toward simulation infrastructure that
+let the team iterate without needing robot time for every test.
 
 **Isaac Sim bridge.** starting from nothing - no simulator, no bridge, no
 groundwork - i built the bridge that connects the robot stack to Isaac Sim.
@@ -44,13 +43,13 @@ truth pose. i first wrote it as a pybind module, then rewrote it as ctypes
 over the C API two days later once the pybind approach showed friction
 crossing the container boundary. the channel design is generic - any SHM
 channel can drive any Isaac Sim piece - and currently drives the arm,
-suction, and module pose.
+suction, and a target object's ground-truth pose.
 
 **teleop to autonomy.** built arm control in joint space and Cartesian
 space first, then drive. drive took a week and three attempts before
 working; the first two dead ends looked like controller bugs but the actual
 root cause was the URDF hierarchy. once teleop was solid I integrated it
-with the GTP (go-to-pose) commander and moved on to closed-loop autonomous
+with the autonomy commander and moved on to closed-loop autonomous
 pick-and-place.
 
 **sim as CI.** the end goal shifted from lane-keeping validation to running
@@ -70,28 +69,27 @@ autonomy stack end-to-end against mock perception. the URDF turned out to
 be incomplete in ways that only showed up once collision checking needed
 it (below).
 
-**audio node refactor.** the original audio playback was single-sound and a
-failed playback attempt could crash manipulation - three processes each
-owned their own player and fought over one speaker. replaced it with a
-standalone `audio_node` that any caller talks to over D-Bus, mixing up to 8
-voices with priority eviction so one owner controls the speaker and a
-failed sound can't take manipulation down with it. also got to resolder and
-rewire the physical speakers.
+**audio node refactor.** audio playback was previously single-sound, with
+several processes each owning their own player and fighting over one
+speaker - a fragile setup that could affect other systems when it failed.
+replaced it with a standalone `audio_node` that any caller talks to over
+D-Bus, mixing up to 8 voices with priority eviction so one owner controls
+the speaker and failures stay contained. also got to resolder and rewire
+the physical speakers.
 
 **collision checking.** the team needed self-collision checking that could
-run inside a real-time teleop guard, under a 12ms budget to match the arm
-controller's loop rate. I benchmarked three approaches on a Jetson Orin:
-CPU FCL (MoveIt's default) had a >52ms worst case and failed the budget
-outright. GPU voxel SDF was the most accurate but the heaviest on memory
-and runtime. GPU spheres were fastest and smallest (p50 0.89ms, p99 1.6ms)
-and became the pick for self-collision, with voxels flagged as the better
-fit for future world-collision / motion-planning work where accuracy
-matters more than headroom.
+run inside a real-time teleop guard on a tight embedded-GPU budget. I
+benchmarked three approaches: CPU FCL (MoveIt's default) was an order of
+magnitude too slow to fit the budget. GPU voxel SDF was the most accurate
+but the heaviest on memory and runtime. GPU spheres were the fastest and
+smallest by a wide margin and became the pick for self-collision, with
+voxels flagged as the better fit for future world-collision /
+motion-planning work where accuracy matters more than headroom.
 
 ## tools
 
 C++, python, ROS 2, Isaac Sim, ctypes, MoveIt, D-Bus, CUDA (GPU collision
-checking), Jetson Orin, solidworks.
+checking), solidworks.
 
 ## what i took from it
 
