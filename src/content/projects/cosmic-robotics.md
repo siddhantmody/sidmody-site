@@ -6,7 +6,7 @@ role: "robotics engineering intern"
 org: "cosmic robotics (YC S26)"
 tags: ["simulation", "c++", "controls"]
 order: 0
-draft: false
+draft: true
 ---
 
 ## disclaimer
