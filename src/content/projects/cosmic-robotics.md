@@ -13,27 +13,26 @@ draft: false
 
 cosmic builds solar panel manipulation robots and most of the codebase is
 proprietary. this writeup sticks to general scope, architecture, and
-skills - no proprietary numbers or source.
+skills without including proprietary numbers or source.
 
 ## overview
 
 summer 2026 internship at [cosmic robotics](https://www.cosmicrobotics.com/),
-writing C++ for solar panel manipulation robots. i started on a lane-keeping
-controller, but the robot went unavailable for hardware testing, so the
-project pivoted toward building simulation infrastructure that didn't exist
-yet: an Isaac Sim bridge, teleop and autonomy pipelines, and a nightly CI
-that runs pick-and-place headless with zero hardware. alongside that i built
-a camera calibration gimbal, wired up a new arm's URDF into MoveIt, refactored
-audio playback, and benchmarked collision-checking approaches for a real-time
-safety loop.
+writing C++ for solar panel manipulation robots. i started on a
+lane-keeping controller, then shifted toward building simulation
+infrastructure that didn't exist yet: an Isaac Sim bridge, teleop and
+autonomy pipelines, and a nightly CI that runs pick-and-place headless with
+zero hardware. alongside that i built a camera calibration gimbal, wired a
+new arm platform's URDF into MoveIt, refactored audio playback, and
+benchmarked collision-checking approaches for a real-time safety loop.
 
 ## what i did
 
-**lane keeping (pivoted away from).** wrote a cascading PID lane-keeping
-controller in my first week and characterized the sensor pod's noise floor
-(5mm lateral, 0.25° heading). wrote a hardware test plan, but the robot
-wasn't available to run it on. rather than block on hardware access, i
-pivoted to building a simulator that could iterate without it.
+**lane keeping.** wrote a cascading PID lane-keeping controller in my first
+week and characterized the sensor pod's noise floor (5mm lateral, 0.25°
+heading). wrote a hardware test plan for it, then priorities shifted toward
+simulation infrastructure that let the team iterate without needing robot
+time for every test.
 
 **Isaac Sim bridge.** starting from nothing - no simulator, no bridge, no
 groundwork - i built the bridge that connects the robot stack to Isaac Sim.
@@ -65,10 +64,11 @@ the full sensor pod during calibration sweeps, then wrote the Python library
 that drives it. most of the work was mechanical and control tuning to kill
 jitter enough to run a full calibration sweep cleanly.
 
-**KR120 / 1.7 URDF.** built the URDF for the new arm platform (KR120) on
-the 1.7 chassis and wired it into MoveIt, then validated the autonomy stack
-end-to-end against mock perception. the URDF turned out to be incomplete in
-ways that only showed up once collision checking needed it (below).
+**new arm integration.** built the URDF for a new arm platform on the
+latest chassis revision and wired it into MoveIt, then validated the
+autonomy stack end-to-end against mock perception. the URDF turned out to
+be incomplete in ways that only showed up once collision checking needed
+it (below).
 
 **audio node refactor.** the original audio playback was single-sound and a
 failed playback attempt could crash manipulation - three processes each
@@ -79,7 +79,7 @@ failed sound can't take manipulation down with it. also got to resolder and
 rewire the physical speakers.
 
 **collision checking.** the team needed self-collision checking that could
-run inside a real-time teleop guard, under a 12ms budget to match the Kuka
+run inside a real-time teleop guard, under a 12ms budget to match the arm
 controller's loop rate. I benchmarked three approaches on a Jetson Orin:
 CPU FCL (MoveIt's default) had a >52ms worst case and failed the budget
 outright. GPU voxel SDF was the most accurate but the heaviest on memory
