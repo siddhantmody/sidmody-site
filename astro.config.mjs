@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 
 import cloudflare from "@astrojs/cloudflare";
+import sitemap from "@astrojs/sitemap";
 
 // When you get sidmody.tech (or similar), update `site` to that URL.
 // If deploying to https://<username>.github.io/<repo>/, set `base` to '/<repo>/'.
@@ -15,5 +16,6 @@ export default defineConfig({
   },
 
   output: "hybrid",
-  adapter: cloudflare()
+  adapter: cloudflare(),
+  integrations: [sitemap()]
 });

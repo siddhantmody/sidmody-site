@@ -1,8 +1,26 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+const personLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Siddhant Mody',
+  url: 'https://sidmody.com',
+  jobTitle: 'Robotics M.S. Student',
+  affiliation: {
+    '@type': 'CollegeOrUniversity',
+    name: 'University of Pennsylvania',
+  },
+  email: 'mailto:sidmody@engineering.upenn.edu',
+  sameAs: [
+    'https://www.linkedin.com/in/siddhant-mody/',
+    'https://github.com/siddhantmody',
+  ],
+};
 ---
 
 <BaseLayout title="about · siddhant mody">
+  <script type="application/ld+json" set:html={JSON.stringify(personLd)} />
   <article class="prose">
     <h1 class="fade-in fade-in--1">about</h1>
 

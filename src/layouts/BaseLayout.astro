@@ -10,6 +10,7 @@ interface Props {
 
 const { title, description = "siddhant mody — meche + robotics m.s. @ penn", wide = false } = Astro.props;
 const path = Astro.url.pathname;
+const canonicalURL = new URL(path, Astro.site);
 function isCurrent(p: string) {
   if (p === '/' && (path === '/' || path === '')) return true;
   return path.startsWith(p) && p !== '/';
@@ -23,6 +24,16 @@ function isCurrent(p: string) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={new URL('/portrait.jpg', Astro.site)} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL('/portrait.jpg', Astro.site)} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -67,6 +78,7 @@ function isCurrent(p: string) {
         <a href="/about/" aria-current={isCurrent('/about') ? 'page' : undefined}>about</a>
         <a href="/projects/" aria-current={isCurrent('/projects') ? 'page' : undefined}>projects</a>
         <a href="/blog/" aria-current={isCurrent('/blog') ? 'page' : undefined}>writing</a>
+        <a href="/resume.pdf" target="_blank" rel="noopener">resume</a>
         <button
           type="button"
           class="theme-toggle"
